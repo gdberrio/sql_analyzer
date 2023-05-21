@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "sqlanalyzer"
+version = "0.1.0"
+description = "Tool to analyze schemas and discover relationships in tables"
+authors = ["Guilherme Diaz-Berrio"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+pyodbc = "^4.0.39"
+SQLAlchemy = "^2.0.15"
+sqlfluff = "^2.1.0"
+sqlparse = "^0.4.4"
+openai = "^0.27.7"
+networkx = "^3.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
