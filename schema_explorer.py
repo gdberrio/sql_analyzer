@@ -32,11 +32,12 @@ def get_metadata(engine: Engine, schema: str) -> MetaData:
     metadata.reflect(bind=engine, schema=schema)
     return metadata
 
-def get_tables_samples(engine: Engine, metadata: MetaData) -> Dict[str, List[ResultProxy]]:
-    session = Session(engine)
+def get_samples(engine: Engine, metadata: MetaData) -> Dict[str, List[ResultProxy]]:
     samples = dict()
     for table in metadata.tables.values():
+        session = Session(engine)
         print(f"getting sample for table {table.name}")
         results = session.query(table).limit(10).all()
         samples[table.name] = results
+        session.close()
     return samples
