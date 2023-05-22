@@ -1,4 +1,6 @@
-from sqlalchemy import MetaData, create_engine, text
+from typing import Dict, List
+from sqlalchemy import Engine, MetaData, ResultProxy, create_engine
+from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from os import getenv
 import urllib
@@ -10,26 +12,31 @@ database = getenv('DATABASE')
 username = getenv('USER_DB')
 password = getenv('PASSWORD_DB')
 
-print(server, database, username, password)
-params = urllib.parse.quote_plus(r'Driver={ODBC Driver 18 for SQL Server};'
-                                 r'Server=tcp:contoso-tests.database.windows.net,1433;'
-                                 r'Database=Contoso-DW;'
-                                 r'Uid=admin-gdb;'
-                                 rf'Pwd={password};'
-                                 r'Encrypt=yes;'
-                                 r'TrustServerCertificate=no;'
-                                 r'Connection Timeout=30;')
+def get_engine() -> Engine:
+    params = urllib.parse.quote_plus(r'Driver={ODBC Driver 18 for SQL Server};'
+                                     r'Server=tcp:contoso-tests.database.windows.net,1433;'
+                                     r'Database=Contoso-DW;'
+                                     r'Uid=admin-gdb;'
+                                     rf'Pwd={password};'
+                                     r'Encrypt=yes;'
+                                     r'TrustServerCertificate=no;'
+                                     r'Connection Timeout=30;')
 
-engine = create_engine(f"mssql+pyodbc:///?odbc_connect={params}") 
+    engine = create_engine(f"mssql+pyodbc:///?odbc_connect={params}") 
+    return engine
 
-metadata = MetaData()
+def get_metadata(engine: Engine, schema: str) -> MetaData:
 
-metadata.reflect(bind=engine, schema='cso')
+    metadata = MetaData()
 
-for schema in metadata._schemas:
-    print(f"Schema: {schema}")
-    for table_name in metadata.tables:
-        print(f"Table: {table_name}")
-        
+    metadata.reflect(bind=engine, schema=schema)
+    return metadata
 
-print(metadata.tables['cso.DimAccount'])
+def get_tables_samples(engine: Engine, metadata: MetaData) -> Dict[str, List[ResultProxy]]:
+    session = Session(engine)
+    samples = dict()
+    for table in metadata.tables.values():
+        print(f"getting sample for table {table.name}")
+        results = session.query(table).limit(10).all()
+        samples[table.name] = results
+    return samples
