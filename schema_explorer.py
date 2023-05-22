@@ -15,26 +15,21 @@ params = urllib.parse.quote_plus(r'Driver={ODBC Driver 18 for SQL Server};'
                                  r'Server=tcp:contoso-tests.database.windows.net,1433;'
                                  r'Database=Contoso-DW;'
                                  r'Uid=admin-gdb;'
-                                 r'Pwd=keu4mjap12@;'
+                                 rf'Pwd={password};'
                                  r'Encrypt=yes;'
                                  r'TrustServerCertificate=no;'
                                  r'Connection Timeout=30;')
-#params = urllib.parse.quote_plus("'DRIVER={ODBC Driver 18 for SQL Server};SERVER='+server+';DATABASE='+database+';UID='+username+';PWD='+ password")
 
 engine = create_engine(f"mssql+pyodbc:///?odbc_connect={params}") 
 
-#with engine.connect() as connection:
-#    sql = text("select * from dbo.DimAccount")
-#    result = connection.execute(sql)
-#    
-#for row in result:
-#    print(row)
-
 metadata = MetaData()
 
-metadata.reflect(bind=engine, schema='dbo')
+metadata.reflect(bind=engine, schema='cso')
 
 for schema in metadata._schemas:
     print(f"Schema: {schema}")
     for table_name in metadata.tables:
         print(f"Table: {table_name}")
+        
+
+print(metadata.tables['cso.DimAccount'])
