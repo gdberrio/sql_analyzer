@@ -63,7 +63,7 @@ def get_samples(engine: Engine, metadata: MetaData) -> Dict[str, List[ResultProx
         metadata (MetaData): MetaData instance containing information about the schema.
 
     Returns:
-        Dict[str, List[ResultProxy]]: Dictionary mapping table names to lists of result proxies 
+        Dict[str, List[ResultProxy]]: Dictionary mapping table names to lists of result proxies
         containing the sampled data.
     """
 
@@ -76,6 +76,7 @@ def get_samples(engine: Engine, metadata: MetaData) -> Dict[str, List[ResultProx
         session.close()
     return samples
 
+
 def get_table_metadata(engine: Engine, metadata: MetaData) -> Dict[str, Dict[str, str]]:
     """
     Retrieve metadata about each table in the database, including column names and types.
@@ -85,7 +86,7 @@ def get_table_metadata(engine: Engine, metadata: MetaData) -> Dict[str, Dict[str
         metadata (MetaData): MetaData instance containing information about the schema.
 
     Returns:
-        Dict[str, Dict[str, str]]: Dictionary mapping table names to dictionaries of column names 
+        Dict[str, Dict[str, str]]: Dictionary mapping table names to dictionaries of column names
         and types.
     """
 
@@ -96,8 +97,10 @@ def get_table_metadata(engine: Engine, metadata: MetaData) -> Dict[str, Dict[str
         table_dict = dict()
         table_dict = {column.name: str(column.type) for column in table_obj.columns}
         primary_key = table_obj.primary_key.columns.keys()
-        foreign_keys = [key.name for column in table_obj.columns for key in column.foreign_keys]
-        table_dict["Primary_key"] = primary_key #type: ignore
-        table_dict["Foreign_keys"] = foreign_keys #type: ignore
+        foreign_keys = [
+            key.name for column in table_obj.columns for key in column.foreign_keys
+        ]
+        table_dict["Primary_key"] = primary_key  # type: ignore
+        table_dict["Foreign_keys"] = foreign_keys  # type: ignore
         schema_dict[table.name] = table_dict
     return schema_dict
