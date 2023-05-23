@@ -14,6 +14,13 @@ password = getenv("PASSWORD_DB")
 
 
 def get_engine() -> Engine:
+    """
+    Create and return a SQLAlchemy engine for a SQL Server database.
+
+    Returns:
+        Engine: SQLAlchemy engine instance connected to the SQL Server database.
+    """
+
     params = urllib.parse.quote_plus(
         r"Driver={ODBC Driver 18 for SQL Server};"
         r"Server=tcp:contoso-tests.database.windows.net,1433;"
@@ -30,6 +37,17 @@ def get_engine() -> Engine:
 
 
 def get_metadata(engine: Engine, schema: str) -> MetaData:
+    """
+    Reflect a database schema using a given engine and return a MetaData instance.
+
+    Args:
+        engine (Engine): SQLAlchemy engine instance connected to the SQL Server database.
+        schema (str): The name of the schema to reflect.
+
+    Returns:
+        MetaData: MetaData instance containing information about the schema.
+    """
+
     metadata = MetaData()
 
     metadata.reflect(bind=engine, schema=schema)
@@ -37,6 +55,18 @@ def get_metadata(engine: Engine, schema: str) -> MetaData:
 
 
 def get_samples(engine: Engine, metadata: MetaData) -> Dict[str, List[ResultProxy]]:
+    """
+    Retrieve a sample of data (10 rows) from each table in the database.
+
+    Args:
+        engine (Engine): SQLAlchemy engine instance connected to the SQL Server database.
+        metadata (MetaData): MetaData instance containing information about the schema.
+
+    Returns:
+        Dict[str, List[ResultProxy]]: Dictionary mapping table names to lists of result proxies 
+        containing the sampled data.
+    """
+
     samples = dict()
     for table in metadata.tables.values():
         session = Session(engine)
@@ -47,6 +77,18 @@ def get_samples(engine: Engine, metadata: MetaData) -> Dict[str, List[ResultProx
     return samples
 
 def get_table_metadata(engine: Engine, metadata: MetaData) -> Dict[str, Dict[str, str]]:
+    """
+    Retrieve metadata about each table in the database, including column names and types.
+
+    Args:
+        engine (Engine): SQLAlchemy engine instance connected to the SQL Server database.
+        metadata (MetaData): MetaData instance containing information about the schema.
+
+    Returns:
+        Dict[str, Dict[str, str]]: Dictionary mapping table names to dictionaries of column names 
+        and types.
+    """
+
     schema_dict = dict()
     for table in metadata.tables.values():
         full_table_name = f"{table.schema}.{table.name}"
