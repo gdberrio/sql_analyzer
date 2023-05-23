@@ -1,5 +1,5 @@
 from typing import Dict, List
-from sqlalchemy import Engine, MetaData, ResultProxy, create_engine
+from sqlalchemy import Engine, MetaData, ResultProxy, Table, create_engine
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from os import getenv
@@ -45,3 +45,13 @@ def get_samples(engine: Engine, metadata: MetaData) -> Dict[str, List[ResultProx
         samples[table.name] = results
         session.close()
     return samples
+
+def get_table_metadata(engine: Engine, metadata: MetaData) -> Dict[str, Dict[str, str]]:
+    schema_dict = dict()
+    for table in metadata.tables.values():
+        full_table_name = f"{table.schema}.{table.name}"
+        table_obj = Table(full_table_name, metadata, autoload_with=engine)
+        table_dict = dict()
+        table_dict = {column.name: str(column.type) for column in table_obj.columns}
+        schema_dict[table.name] = table_dict
+    return schema_dict
