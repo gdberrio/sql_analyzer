@@ -21,6 +21,8 @@ def get_engine() -> Engine:
         Engine: SQLAlchemy engine instance connected to the SQL Server database.
     """
 
+    # TODO: generalize this to allow for selection of DB, and correct selection of Driver and connection string
+    
     params = urllib.parse.quote_plus(
         r"Driver={ODBC Driver 18 for SQL Server};"
         r"Server=tcp:contoso-tests.database.windows.net,1433;"
