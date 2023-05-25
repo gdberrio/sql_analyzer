@@ -9,32 +9,23 @@ load_dotenv()
 
 server = getenv("SERVER_DB")
 database = getenv("DATABASE")
+port = getenv("PORT_DB")
 username = getenv("USER_DB")
 password = getenv("PASSWORD_DB")
 
-
 def get_engine() -> Engine:
     """
-    Create and return a SQLAlchemy engine for a SQL Server database.
+    Create and return a SQLAlchemy engine for a PostgreSQL database.
 
     Returns:
-        Engine: SQLAlchemy engine instance connected to the SQL Server database.
+        Engine: SQLAlchemy engine instance connected to the PostgreSQL database.
     """
 
     # TODO: generalize this to allow for selection of DB, and correct selection of Driver and connection string
     
-    params = urllib.parse.quote_plus(
-        r"Driver={ODBC Driver 18 for SQL Server};"
-        r"Server=tcp:contoso-tests.database.windows.net,1433;"
-        r"Database=Contoso-DW;"
-        r"Uid=admin-gdb;"
-        rf"Pwd={password};"
-        r"Encrypt=yes;"
-        r"TrustServerCertificate=no;"
-        r"Connection Timeout=30;"
-    )
+    connection_url = f"postgresql://{username}:{password}@{server}:{port}/{database}"
 
-    engine = create_engine(f"mssql+pyodbc:///?odbc_connect={params}")
+    engine = create_engine(connection_url)
     return engine
 
 
@@ -43,7 +34,7 @@ def get_metadata(engine: Engine, schema: str) -> MetaData:
     Reflect a database schema using a given engine and return a MetaData instance.
 
     Args:
-        engine (Engine): SQLAlchemy engine instance connected to the SQL Server database.
+        engine (Engine): SQLAlchemy engine instance connected to the PostgreSQL database.
         schema (str): The name of the schema to reflect.
 
     Returns:
@@ -61,7 +52,7 @@ def get_samples(engine: Engine, metadata: MetaData) -> Dict[str, List[ResultProx
     Retrieve a sample of data (10 rows) from each table in the database.
 
     Args:
-        engine (Engine): SQLAlchemy engine instance connected to the SQL Server database.
+        engine (Engine): SQLAlchemy engine instance connected to the PostgreSQL database.
         metadata (MetaData): MetaData instance containing information about the schema.
 
     Returns:
@@ -84,7 +75,7 @@ def get_table_metadata(engine: Engine, metadata: MetaData) -> Dict[str, Dict[str
     Retrieve metadata about each table in the database, including column names and types.
 
     Args:
-        engine (Engine): SQLAlchemy engine instance connected to the SQL Server database.
+        engine (Engine): SQLAlchemy engine instance connected to the PostgreSQL database.
         metadata (MetaData): MetaData instance containing information about the schema.
 
     Returns:
