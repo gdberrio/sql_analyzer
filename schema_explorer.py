@@ -3,7 +3,8 @@ from sqlalchemy import Engine, MetaData, ResultProxy, Table, create_engine
 from sqlalchemy.orm import Session
 from dotenv import load_dotenv
 from os import getenv
-import urllib
+from dataclasses import dataclass
+from enum import Enum
 
 load_dotenv()
 
@@ -13,7 +14,21 @@ port = getenv("PORT_DB")
 username = getenv("USER_DB")
 password = getenv("PASSWORD_DB")
 
-def get_engine() -> Engine:
+class Database(str, Enum):
+    PostgreSQL = 'postgresql'
+
+@dataclass
+class DBConfig:
+    db_type: Database
+    server: str
+    database: str
+    port: str
+    username: str
+    password: str
+
+psql_db_config = DBConfig(db_type=Database.PostgreSQL, server=server, database=database, port=port, username=username, password=password)
+
+def get_engine(DB: DBConfig = psql_db_config) -> Engine:
     """
     Create and return a SQLAlchemy engine for a PostgreSQL database.
 
@@ -22,8 +37,7 @@ def get_engine() -> Engine:
     """
 
     # TODO: generalize this to allow for selection of DB, and correct selection of Driver and connection string
-    
-    connection_url = f"postgresql://{username}:{password}@{server}:{port}/{database}"
+    connection_url = f"{DB.db_type.value}://{DB.username}:{DB.password}@{DB.server}:{DB.port}/{DB.database}"
 
     engine = create_engine(connection_url)
     return engine
