@@ -24,8 +24,7 @@ class DBConfig:
     database: str
     port: str
     username: str
-    password: str
-
+    password: str 
 
 def get_engine(DB: DBConfig) -> Engine:
     """
@@ -35,9 +34,10 @@ def get_engine(DB: DBConfig) -> Engine:
         Engine: SQLAlchemy engine instance connected to the PostgreSQL database.
     """
 
-    if DB is None:
-        psql_db_config = DBConfig(db_type=Database.PostgreSQL, server=server, database=database, port=port, username=username, password=password)
     # TODO: generalize this to allow for selection of DB, and correct selection of Driver and connection string
+    if DB is None:
+        DB = DBConfig(db_type=Database.PostgreSQL, server=server, database=database, port=port, username=username, password=password) # type: ignore
+
     connection_url = f"{DB.db_type.value}://{DB.username}:{DB.password}@{DB.server}:{DB.port}/{DB.database}"
 
     engine = create_engine(connection_url)
