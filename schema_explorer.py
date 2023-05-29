@@ -3,7 +3,7 @@ from sqlalchemy import Engine, MetaData, ResultProxy, create_engine, inspect
 from sqlalchemy.orm import Session
 from sqlalchemy.schema import CreateTable
 from dotenv import load_dotenv
-from os import getenv, path
+from os import getenv
 from dataclasses import dataclass
 from enum import Enum
 import logging
