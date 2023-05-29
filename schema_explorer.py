@@ -1,12 +1,16 @@
 from typing import Dict, List
-from sqlalchemy import Engine, MetaData, ResultProxy, Table, create_engine
+from sqlalchemy import Engine, MetaData, ResultProxy, create_engine, inspect
 from sqlalchemy.orm import Session
+from sqlalchemy.schema import CreateTable
 from dotenv import load_dotenv
-from os import getenv
+from os import getenv, path
 from dataclasses import dataclass
 from enum import Enum
+import logging
+import csv
 
 load_dotenv()
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 server = getenv("SERVER_DB")
 database = getenv("DATABASE")
@@ -39,8 +43,8 @@ def get_engine(DB: DBConfig) -> Engine:
         DB = DBConfig(db_type=Database.PostgreSQL, server=server, database=database, port=port, username=username, password=password) # type: ignore
 
     connection_url = f"{DB.db_type.value}://{DB.username}:{DB.password}@{DB.server}:{DB.port}/{DB.database}"
-
     engine = create_engine(connection_url)
+    logging.info('Engine created: %s', repr(engine.url))
     return engine
 
 
@@ -59,6 +63,7 @@ def get_metadata(engine: Engine, schema: str) -> MetaData:
     metadata = MetaData()
 
     metadata.reflect(bind=engine, schema=schema)
+    logging.info('Metadata object created: %s', metadata)
     return metadata
 
 
@@ -78,14 +83,13 @@ def get_samples(engine: Engine, metadata: MetaData) -> Dict[str, List[ResultProx
     samples = dict()
     for table in metadata.tables.values():
         session = Session(engine)
-        print(f"getting sample for table {table.name}")
         results = session.query(table).limit(10).all()
         samples[table.name] = results
         session.close()
     return samples
 
 
-def get_table_metadata(engine: Engine, metadata: MetaData) -> Dict[str, Dict[str, str]]:
+def store_schema_details(engine: Engine, metadata: MetaData):  
     """
     Retrieve metadata about each table in the database, including column names and types.
 
@@ -98,17 +102,32 @@ def get_table_metadata(engine: Engine, metadata: MetaData) -> Dict[str, Dict[str
         and types.
     """
 
-    schema_dict = dict()
-    for table in metadata.tables.values():
-        full_table_name = f"{table.schema}.{table.name}"
-        table_obj = Table(full_table_name, metadata, autoload_with=engine)
-        table_dict = dict()
-        table_dict = {column.name: str(column.type) for column in table_obj.columns}
-        primary_key = table_obj.primary_key.columns.keys()
-        foreign_keys = [
-            key.name for column in table_obj.columns for key in column.foreign_keys
-        ]
-        table_dict["Primary_key"] = primary_key  # type: ignore
-        table_dict["Foreign_keys"] = foreign_keys  # type: ignore
-        schema_dict[table.name] = table_dict
-    return schema_dict
+    with open('data/table_definitions.sql', 'w') as sql_file:
+        for table in metadata.tables.values():
+            sql_file.write(str(CreateTable(table).compile(engine)))
+            sql_file.write(';\n')
+
+        logging.info('Saved metadata into file %s', sql_file)
+
+    samples = get_samples(engine=engine, metadata=metadata)
+    for table_name, results in samples.items():
+        if results:  # check if there are results for the table
+            # Open the CSV file in write mode
+            with open(f'data/{table_name}.csv', 'w', newline='') as csv_file:
+                writer = csv.writer(csv_file)
+
+                # Write the header
+                inspector = inspect(engine)
+                columns = inspector.get_columns(table_name)
+                writer.writerow([column['name'] for column in columns])
+
+                # Iterate over the query results and write each row to the CSV
+                for row in results:
+                    writer.writerow([getattr(row, column['name']) for column in columns])
+            logging.info('Saved %s table sample to %s', table_name, csv_file)
+
+if __name__ == "__main__":
+    DB = DBConfig(db_type=Database.PostgreSQL, server=server, database=database, port=port, username=username, password=password) # type: ignore
+    engine = get_engine(DB=DB)
+    metadata = get_metadata(engine=engine, schema='public')
+    store_schema_details(engine=engine, metadata=metadata)
