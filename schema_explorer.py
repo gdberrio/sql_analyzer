@@ -32,10 +32,13 @@ class DBConfig:
 
 def get_engine(DB: DBConfig) -> Engine:
     """
-    Create and return a SQLAlchemy engine for a PostgreSQL database.
+        Constructs a SQLAlchemy engine instance that establishes a connection to the specified database.
 
-    Returns:
-        Engine: SQLAlchemy engine instance connected to the PostgreSQL database.
+        Args:
+            DB (DBConfig): An instance of the DBConfig dataclass which includes necessary database parameters.
+
+        Returns:
+            Engine: SQLAlchemy engine instance that's connected to the specified database.
     """
 
     # TODO: generalize this to allow for selection of DB, and correct selection of Driver and connection string
@@ -50,14 +53,14 @@ def get_engine(DB: DBConfig) -> Engine:
 
 def get_metadata(engine: Engine, schema: str) -> MetaData:
     """
-    Reflect a database schema using a given engine and return a MetaData instance.
+    Reflects the specified schema of a database using a SQLAlchemy engine, and returns a MetaData instance.
 
     Args:
-        engine (Engine): SQLAlchemy engine instance connected to the PostgreSQL database.
-        schema (str): The name of the schema to reflect.
+        engine (Engine): SQLAlchemy engine instance connected to the specified database.
+        schema (str): The name of the schema to reflect from the connected database.
 
     Returns:
-        MetaData: MetaData instance containing information about the schema.
+        MetaData: SQLAlchemy MetaData instance that includes the reflected details of the schema.
     """
 
     metadata = MetaData()
@@ -69,15 +72,15 @@ def get_metadata(engine: Engine, schema: str) -> MetaData:
 
 def get_samples(engine: Engine, metadata: MetaData) -> Dict[str, List[ResultProxy]]:
     """
-    Retrieve a sample of data (10 rows) from each table in the database.
+    Fetches a sample of data (10 rows) from each table of the connected database.
 
     Args:
-        engine (Engine): SQLAlchemy engine instance connected to the PostgreSQL database.
-        metadata (MetaData): MetaData instance containing information about the schema.
+        engine (Engine): SQLAlchemy engine instance connected to the specified database.
+        metadata (MetaData): MetaData instance that holds details about the schema of the database.
 
     Returns:
-        Dict[str, List[ResultProxy]]: Dictionary mapping table names to lists of result proxies
-        containing the sampled data.
+        Dict[str, List[ResultProxy]]: A dictionary mapping table names to a list of ResultProxy instances,
+        each containing the data of 10 rows from the corresponding table.
     """
 
     samples = dict()
@@ -91,15 +94,17 @@ def get_samples(engine: Engine, metadata: MetaData) -> Dict[str, List[ResultProx
 
 def store_schema_details(engine: Engine, metadata: MetaData):  
     """
-    Retrieve metadata about each table in the database, including column names and types.
+    Stores details of each table in the connected database, including column names, column types,
+    and a sample of data, and writes the SQL table creation statement into a file.
+
+    Stores samples of each table into a csv file.
 
     Args:
-        engine (Engine): SQLAlchemy engine instance connected to the PostgreSQL database.
-        metadata (MetaData): MetaData instance containing information about the schema.
+        engine (Engine): SQLAlchemy engine instance connected to the specified database.
+        metadata (MetaData): MetaData instance that holds details about the schema of the database.
 
     Returns:
-        Dict[str, Dict[str, str]]: Dictionary mapping table names to dictionaries of column names
-        and types.
+        None
     """
 
     with open('data/table_definitions.sql', 'w') as sql_file:
