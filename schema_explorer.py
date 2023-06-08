@@ -1,13 +1,11 @@
 from typing import Dict
 from sqlalchemy import Engine, MetaData, create_engine, inspect
 from sqlalchemy.schema import CreateTable
-from sqlalchemy.engine.reflection import Inspector
 from dotenv import load_dotenv
 from os import getenv
 from dataclasses import dataclass
 from enum import Enum
 import logging
-import csv
 import pandas as pd
 
 load_dotenv()
@@ -116,7 +114,7 @@ def store_schema_details(engine: Engine):
         None
     """
 
-    inspector = Inspector.from_engine(engine)
+    inspector = inspect(engine)
     schemas = inspector.get_schema_names()
     for schema in schemas:
         logging.info("Entering schema: %s", schema)
